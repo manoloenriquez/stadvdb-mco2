@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 import mysql from 'mysql'
 import util from 'util'
 
