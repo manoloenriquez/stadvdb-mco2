@@ -24,10 +24,10 @@ export default function Home() {
             <tbody>
               {data.map(movie => (
                 <tr key={movie.movie_id}>
-                  <th>{movie.movie_id}</th>
-                  <th>{movie.movie_name}</th>
-                  <th>{movie.movie_year}</th>
-                  <th>{movie.movie_ranking}</th>
+                  <td>{movie.movie_id}</td>
+                  <td>{movie.movie_name}</td>
+                  <td>{movie.movie_year}</td>
+                  <td>{movie.movie_ranking}</td>
                 </tr>
               ))}
             </tbody>
