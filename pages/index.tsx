@@ -4,6 +4,8 @@ export default function Home() {
 
   const { data, error } = useSWR('/api/case1', async url => await fetch(url).then(data => data.json()))
 
+  if (!data) return <h3>Loading...</h3>
+
   return (
     <div className="container p-3">
       {/* Case 1 */}
@@ -21,7 +23,7 @@ export default function Home() {
             </thead>
             <tbody>
               {data.map(movie => (
-                <tr>
+                <tr key={movie.movie_id}>
                   <th>{movie.movie_id}</th>
                   <th>{movie.movie_name}</th>
                   <th>{movie.movie_year}</th>

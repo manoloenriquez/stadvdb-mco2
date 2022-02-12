@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import DBNode from '../models/node'
 
 const nodeOne = new DBNode(

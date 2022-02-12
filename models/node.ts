@@ -1,6 +1,6 @@
 import mysql, { Connection, MysqlError } from 'mysql'
 
-export default class {
+export default class DBNode {
   host: string
   user: string
   password: string
