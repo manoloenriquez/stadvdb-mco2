@@ -91,6 +91,10 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+    setMovies1(null)
+    setMovies2(null)
+    setMovies3(null)
+    setMovies4(null)
     axios.get('/api/movies', {
       params: {
         offset: 0,
@@ -129,8 +133,8 @@ export default function Home() {
   }, [offsetD, isolation, node1status, node2status, node3status])
 
   return (
-    <div className="d-flex gap-5">
-      <div className="border">
+    <div className="d-flex">
+      <div className="sidebar border">
         <div className="position-sticky top-0 p-3">
           <div className="alert alert-secondary fw-light" role="alert">
             *Current isolation level: {isolation} <br />
@@ -181,7 +185,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div>
+      <div className="content px-5">
         <h4 className="mt-4">Case 1</h4>
         <p>*All transactions are reading</p>
         <div className="d-flex gap-3">
@@ -276,6 +280,17 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .sidebar {
+          max-width: 400px;
+          width: 100%;
+        }
+
+        .content {
+          overflow-x: auto;
+        }
+      `}</style>
     </div>
   )
 }
