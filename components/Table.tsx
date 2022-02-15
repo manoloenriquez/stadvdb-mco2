@@ -1,56 +1,49 @@
-import type { Movie, Director, Actor, Role } from '../lib/types'
-import axios from 'axios'
-
+import type { Movie, Director } from '../lib/types'
 interface Props {
   movies?: Array<Movie>
   directors?: Array<Director>
-  actors?: Array<Actor>
-  roles?: Array<Role>
   isolation: string
 }
 
-export default function Table({ movies, directors, actors, roles, isolation }: Props) {
-  const delMovie = (id: number) => {
-    // axios.delete('/api/movies', {
-    //   data: {
-    //     id: id,
-    //     isolation: isolation
-    //   }
-    // })
-  }
-
+export default function Table({ movies, directors, isolation }: Props) {
   return (
     <div className="table-container">
       <table className="table table-bordered px-3 table-hover">
         <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Year</th>
-            <th>Ranking</th>
-            <th></th>
-            <th></th>
-          </tr>
+          {movies ? (
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Year</th>
+              <th>Ranking</th>
+            </tr>
+          ) : directors ? (
+            <tr>
+              <th>ID</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+            </tr>
+          ) : (
+            <tr></tr>
+          )}
         </thead>
         <tbody>
-          {movies.map(movie => (
+          {movies ? movies.map(movie => (
             <tr key={movie.movie_id}>
               <td>{movie.movie_id}</td>
               <td>{movie.movie_name}</td>
               <td>{movie.movie_year}</td>
               <td>{movie.movie_ranking}</td>
-              <td>
-                <button className="btn btn-primary">
-                  Edit
-                </button>
-              </td>
-              <td>
-                <button className="btn btn-danger" onClick={() => delMovie(movie.movie_id)}>
-                  Delete
-                </button>
-              </td>
             </tr>
-          ))}
+          )) : directors ? directors.map(director => (
+            <tr key={director.director_id}>
+              <td>{director.director_id}</td>
+              <td>{director.director_first_name}</td>
+              <td>{director.director_last_name}</td>
+            </tr>
+          )) : (
+            <tr></tr>
+          )}
         </tbody>
       </table>
 

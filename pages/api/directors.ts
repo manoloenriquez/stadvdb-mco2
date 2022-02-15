@@ -10,15 +10,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case 'GET':
       const { offset }: any = req.query
       isolation = req.query.isolation
-      res.status(200).json(await controller.getMovies(offset, isolation))
+      res.status(200).json(await controller.getDirectors(offset, isolation))
       break
     case 'POST':
       break
     case 'UPDATE':
       break
     case 'DELETE':
-      const { id }: any = req.body
-      isolation = req.body.isolation
-      res.status(200).json(await controller.deleteMovie(id, isolation))
+      // const { id }: any = req.body
+      // isolation = req.body.isolation
+      // await controller.deleteMovie(id, isolation)
+      // res.status(200).json({ message: `Deleted id ${id} from movies_dim`})
   }
 }
