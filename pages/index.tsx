@@ -20,6 +20,8 @@ export default function Home() {
   const [ c1offsetR, setC1OffsetR ] = useState<number>(0)
   const [ c1isolation, setC1Isolation ] = useState<string>('uncommitted')
 
+  const QUERY_LIMIT = 10
+
   useEffect(() => {
     axios.get('/api/movies', {
       params: {
@@ -82,9 +84,9 @@ export default function Home() {
             <Table movies={c1movies} />
             <button 
               className="btn btn-light border float-end"
-              onClick={() => setC1OffsetM(c1offsetM + 100)}
+              onClick={() => setC1OffsetM(c1offsetM + QUERY_LIMIT)}
             >
-              Next 100
+              Next {QUERY_LIMIT}
             </button>
             </>
           )}
@@ -99,9 +101,9 @@ export default function Home() {
             <Table actors={c1actors} />
             <button 
               className="btn btn-light border float-end"
-              onClick={() => setC1OffsetA(c1offsetA + 100)}
+              onClick={() => setC1OffsetA(c1offsetA + QUERY_LIMIT)}
             >
-              Next 100
+              Next {QUERY_LIMIT}
             </button>
             </>
           )}
@@ -116,9 +118,9 @@ export default function Home() {
             <Table directors={c1directors} />
             <button 
               className="btn btn-light border float-end"
-              onClick={() => setC1OffsetD(c1offsetD + 100)}
+              onClick={() => setC1OffsetD(c1offsetD + QUERY_LIMIT)}
             >
-              Next 100
+              Next {QUERY_LIMIT}
             </button>
             </>
           )}
@@ -133,9 +135,9 @@ export default function Home() {
             <Table roles={c1roles} />
             <button 
               className="btn btn-light border float-end"
-              onClick={() => setC1OffsetR(c1offsetR + 100)}
+              onClick={() => setC1OffsetR(c1offsetR + QUERY_LIMIT)}
             >
-              Next 100
+              Next {QUERY_LIMIT}
             </button>
             </>
           )}

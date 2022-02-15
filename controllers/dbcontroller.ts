@@ -28,10 +28,12 @@ const connectNodes = async (): Promise<void> => {
 
 connectNodes()
 
+const QUERY_LIMIT = 10
+
 export default {
   getMovies: async (offset: any, isolation?: string): Promise<Array<Movie>> => {
     let data = []
-    let query = `SELECT * FROM movies_dim LIMIT ${offset}, 100`
+    let query = `SELECT * FROM movies_dim LIMIT ${offset}, ${QUERY_LIMIT}`
     
     // await connectNodes()
 
@@ -139,7 +141,7 @@ export default {
   },
   getActors: async (offset: any, isolation?: string): Promise<Array<Actor>> => {
     let data = []
-    let query = `SELECT * FROM actors_dim LIMIT ${offset}, 100`
+    let query = `SELECT * FROM actors_dim LIMIT ${offset}, ${QUERY_LIMIT}`
     
     // await connectNodes()
 
@@ -156,7 +158,7 @@ export default {
   },
   getDirectors: async (offset: any, isolation?: string): Promise<Array<Director>> => {
     let data = []
-    let query = `SELECT * FROM directors_dim LIMIT ${offset}, 100`
+    let query = `SELECT * FROM directors_dim LIMIT ${offset}, ${QUERY_LIMIT}`
     
     // await connectNodes()
 
@@ -173,7 +175,7 @@ export default {
   },
   getRoles: async (offset: any, isolation?: string): Promise<Array<Director>> => {
     let data = []
-    let query = `SELECT * FROM roles_fact LIMIT ${offset}, 100`
+    let query = `SELECT * FROM roles_fact LIMIT ${offset}, ${QUERY_LIMIT}`
     
     // await connectNodes()
 
