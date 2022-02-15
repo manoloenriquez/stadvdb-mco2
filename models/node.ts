@@ -1,10 +1,11 @@
-import mysql, { Connection, MysqlError } from 'mysql'
+import mysql, { Pool, PoolConnection, MysqlError } from 'mysql'
 
 export default class DBNode {
   host: string
   user: string
   password: string
-  conn: Connection
+  pool: Pool
+  conn: PoolConnection
   isOn: boolean
 
   constructor(host: string, user: string, password: string) {
@@ -12,7 +13,7 @@ export default class DBNode {
     this.user = user
     this.password = password
 
-    this.conn = mysql.createConnection({
+    this.pool = mysql.createPool({
       host: this.host,
       port: 3306,
       user: this.user,
@@ -25,25 +26,22 @@ export default class DBNode {
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.conn.connect(err => {
+      this.pool.getConnection((err, conn) => {
         if (err) {
           reject(err)
         }
   
         console.log(`Connected to ${this.host}`)
         this.isOn = true
+        this.conn = conn
         resolve()
       })
     })
   }
 
   async close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.conn.end(err => {
-        if (err) reject(err)
-        resolve()
-      })
-    })
+    this.isOn = false
+    this.conn.release()
   }
 
   async query(q: string): Promise<any> {

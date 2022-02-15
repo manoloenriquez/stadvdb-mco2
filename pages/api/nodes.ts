@@ -4,6 +4,13 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import controller from '../../controllers/dbcontroller'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { offset }: any = req.query
-  res.status(200).json(await controller.getDirectors(offset))
+  
+  
+  switch (req.method) {
+    case 'GET':
+      res.status(200).json({ result: controller.getNodeStatus(req.query.node) })
+      break
+    case 'POST':
+      res.status(200).json({ result: await controller.triggerNode(req.body.node) })
+  }
 }
