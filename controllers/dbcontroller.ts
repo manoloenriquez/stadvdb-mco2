@@ -74,6 +74,7 @@ export default {
       try {
         await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
         await nodeOne.query('START TRANSACTION')
+        // await nodeOne.query('SELECT sleep(5)')
         data = await nodeOne.query(query)
         await nodeOne.query('COMMIT')
       } catch (err) {
@@ -128,13 +129,6 @@ export default {
   //   }
   // },
   deleteMovie: async (id: string, isolation: string): Promise<Array<Movie>> => {
-    // let query = `
-    //   DELETE m, r
-    //   FROM movies_dim m
-    //   INNER JOIN roles_fact r ON m.movie_id = r.movie_id   
-    //   WHERE m.movie_id = ${id}
-    // `
-
     let data = []
 
     let delRoles = `
@@ -147,6 +141,10 @@ export default {
 
     let selectMovies = `
       SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
+    `
+
+    let lock = `
+      LOCK TABLE 
     `
 
     if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
