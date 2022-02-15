@@ -5,6 +5,7 @@ export default class DBNode {
   user: string
   password: string
   conn: Connection
+  isOn: boolean
 
   constructor(host: string, user: string, password: string) {
     this.host = host
@@ -18,21 +19,31 @@ export default class DBNode {
       password: this.password,
       database: 'imdb'
     })
+
+    this.isOn = false
   }
 
-  connect(): void {
-    this.conn.connect(err => {
-      if (err) {
-        console.log(`Unable to connect to ${this.host}`)
-        throw err
-      }
-
-      console.log(`Connected to ${this.host}`)
+  async connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.conn.connect(err => {
+        if (err) {
+          reject(err)
+        }
+  
+        console.log(`Connected to ${this.host}`)
+        this.isOn = true
+        resolve()
+      })
     })
   }
 
-  close(): void {
-    this.conn.end()
+  async close(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.conn.end(err => {
+        if (err) reject(err)
+        resolve()
+      })
+    })
   }
 
   async query(q: string): Promise<any> {
