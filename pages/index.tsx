@@ -14,9 +14,9 @@ export default function Home() {
   const [ movies1, setMovies1 ] = useState<Array<Movie>>(null)
   const [ movies2, setMovies2 ] = useState<Array<Movie>>(null)
   const [ movies3, setMovies3 ] = useState<Array<Movie>>(null)
-  const [ movies4, setMovies4 ] = useState<Array<Movie>>(null)
   const [ offsetM, setOffsetM ] = useState<number>(0)
   const [ directors, setDirectors ] = useState<Array<Director>>(null)
+  const [ directors1, setDirectors1 ] = useState<Array<Director>>(null)
   const [ offsetD, setOffsetD ] = useState<number>(0)
   const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
 
@@ -64,8 +64,19 @@ export default function Home() {
     })
   }
 
-  const case3Trigger = (id: number) => {
+  const case3Trigger = (movie_id: number, director_id: number) => {
+    axios.delete('/api/movies', {
+      data: {
+        id: movie_id,
+        isolation: isolation
+      }
+    }).then(res => {
+      setMovies3(res.data)
+    })
 
+    axios.delete('/api/directors', {
+      
+    })
   }
 
   useEffect(() => {
@@ -94,7 +105,9 @@ export default function Home() {
     setMovies1(null)
     setMovies2(null)
     setMovies3(null)
-    setMovies4(null)
+    setDirectors1(null)
+    setOffsetM(0)
+    setOffsetD(0)
     axios.get('/api/movies', {
       params: {
         offset: 0,
@@ -104,7 +117,15 @@ export default function Home() {
       setMovies1(res.data)
       setMovies2(res.data)
       setMovies3(res.data)
-      setMovies4(res.data)
+    })
+
+    axios.get('/api/directors', {
+      params: {
+        offset: 0,
+        isolation: isolation
+      }
+    }).then(res => {
+      setDirectors1(res.data)
     })
   }, [isolation, node1status, node2status, node3status])
 
@@ -133,8 +154,8 @@ export default function Home() {
   }, [offsetD, isolation, node1status, node2status, node3status])
 
   return (
-    <div className="d-flex">
-      <div className="sidebar border">
+    <div className="d-flex h-100">
+      <div className="sidebar border me-4">
         <div className="position-sticky top-0 p-3">
           <div className="alert alert-secondary fw-light" role="alert">
             *Current isolation level: {isolation} <br />
@@ -185,7 +206,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="content px-5">
+      <div className="content">
         <h4 className="mt-4">Case 1</h4>
         <p>*All transactions are reading</p>
         <div className="d-flex gap-3">
@@ -262,8 +283,8 @@ export default function Home() {
         </button>
         <div className="d-flex gap-3 mb-4">
           <div>
-            <h4>Movies Table 1</h4>
-            {!movies1 ? (
+            <h4>Movies Table</h4>
+            {!movies3 ? (
               <Loading />
             ) : (
               <Table movies={movies3} isolation={isolation} />
@@ -271,11 +292,11 @@ export default function Home() {
           </div>
 
           <div>
-            <h4>Movies Table 2</h4>
-            {!movies2 ? (
+            <h4>Directors Table</h4>
+            {!directors1 ? (
               <Loading />
             ) : (
-              <Table movies={movies4} isolation={isolation} />
+              <Table directors={directors1} isolation={isolation} />
             )}
           </div>
         </div>
@@ -283,12 +304,11 @@ export default function Home() {
 
       <style jsx>{`
         .sidebar {
-          max-width: 400px;
-          width: 100%;
+          width: 350px;
         }
 
         .content {
-          overflow-x: auto;
+          overflow-x: scroll;
         }
       `}</style>
     </div>

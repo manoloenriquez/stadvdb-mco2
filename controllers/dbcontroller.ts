@@ -143,50 +143,60 @@ export default {
       SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
     `
 
-    let lock = `
-      LOCK TABLE 
-    `
-
     if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
     console.log(`deleting ${id} with ${isolation}`)
+
+    // Delete from central node and node 2
     try {
       await nodeTwo.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
       await nodeTwo.query('START TRANSACTION')
-      // await nodeTwo.query(query)
+      await nodeOne.query('START TRANSACTION')
+
       await nodeTwo.query(delRoles)
       await nodeTwo.query(delMovies)
+
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delMovies)
+
+      data = await nodeOne.query(selectMovies)
+
       await nodeTwo.query('COMMIT')
+      await nodeOne.query('COMMIT')
+
+      return data
     } catch (err) {
       console.log(err.message)
       await nodeTwo.query('ROLLBACK')
-    }
-
-    try {
-      await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-      await nodeThree.query('START TRANSACTION')
-      // await nodeThree.query(query)
-      await nodeThree.query(delRoles)
-      await nodeThree.query(delMovies)
-      await nodeThree.query('COMMIT')
-    } catch (err) {
-      console.log(err.message)
-      await nodeThree.query('ROLLBACK')
-    }
-
-    try {
-      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-      await nodeOne.query('START TRANSACTION')
-      // await nodeOne.query(query)
-      await nodeOne.query(delRoles)
-      await nodeOne.query(delMovies)
-      data = [...data, ...await nodeOne.query(selectMovies)]
-      await nodeOne.query('COMMIT')
-    } catch (err) {
-      console.log(err.message)
       await nodeOne.query('ROLLBACK')
     }
 
-    return data
+    // Delete from central node and node 3
+    try {
+      await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeThree.query('START TRANSACTION')
+      await nodeOne.query('START TRANSACTION')
+
+      await nodeThree.query(delRoles)
+      await nodeThree.query(delMovies)
+
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delMovies)
+
+      data = await nodeOne.query(selectMovies)
+
+      await nodeThree.query('COMMIT')
+      await nodeOne.query('COMMIT')
+
+      return data
+    } catch (err) {
+      console.log(err.message)
+      await nodeThree.query('ROLLBACK')
+      await nodeOne.query('ROLLBACK')
+    }
   },
   updateMovie: async (data: Movie, isolation: string): Promise<void> => {
     let node: DBNode = data.movie_year < 1980 ? nodeTwo : nodeThree
@@ -248,5 +258,75 @@ export default {
     }
     
     return data
+  },
+  deleteDirector: async (id: string, isolation: string): Promise<Array<Director>> => {
+    let data = []
+
+    let delRoles = `
+      DELETE FROM roles_fact WHERE director_id = ${id}
+    `
+
+    let delDirectors = `
+      DELETE FROM directors_dim WHERE director_id = ${id}
+    `
+
+    let selectDirectors = `
+      SELECT * FROM directors_dim LIMIT ${QUERY_LIMIT}
+    `
+
+    if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
+    console.log(`deleting ${id} with ${isolation}`)
+
+    // Delete from central node and node 2
+    try {
+      await nodeTwo.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeTwo.query('START TRANSACTION')
+      await nodeOne.query('START TRANSACTION')
+
+      await nodeTwo.query(delRoles)
+      await nodeTwo.query(delDirectors)
+
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delDirectors)
+
+      data = await nodeOne.query(selectDirectors)
+
+      await nodeTwo.query('COMMIT')
+      await nodeOne.query('COMMIT')
+
+      return data
+    } catch (err) {
+      console.log(err.message)
+      await nodeTwo.query('ROLLBACK')
+      await nodeOne.query('ROLLBACK')
+    }
+
+    // Delete from central node and node 3
+    try {
+      await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeThree.query('START TRANSACTION')
+      await nodeOne.query('START TRANSACTION')
+
+      await nodeThree.query(delRoles)
+      await nodeThree.query(delDirectors)
+
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delDirectors)
+
+      data = await nodeOne.query(selectDirectors)
+
+      await nodeThree.query('COMMIT')
+      await nodeOne.query('COMMIT')
+
+      return data
+    } catch (err) {
+      console.log(err.message)
+      await nodeThree.query('ROLLBACK')
+      await nodeOne.query('ROLLBACK')
+    }
   }
 }
