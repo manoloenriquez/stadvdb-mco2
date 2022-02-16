@@ -204,6 +204,7 @@ export default function Home() {
       </div>
 
       <div className="content">
+        <h3 className="mt-4">Concurrency Control and Consistency</h3>
         <h4 className="mt-4">Case 1</h4>
         <p>*All transactions are reading</p>
         <div className="d-flex gap-3">
@@ -288,7 +289,31 @@ export default function Home() {
             )}
           </div>
         </div>
+        <h3 className="mt-4">Global Failure Recovery</h3>
+        
+        <h4 className="mt-4">Case 1</h4>
+        <p>*Transaction failure in writing to central node when attempting to replicate the transaction from Node 1 or Node 2</p>
+        
+        <h4 className="mt-4">Case 2</h4>
+        <p>*Transaction failure in writing to Node 2 and Node 3 when attempting to replicate the transaction from central node</p>
+        
+        <h4 className="mt-4">Case 3</h4>
+        <p>*The central node is unavailable during the transaction and then eventually comes back online.</p>
+        <button 
+          className="btn btn-secondary mb-3"
+        >
+          Trigger transaction
+        </button>
+
+        <h4 className="mt-4">Case 4</h4>
+        <p>*Node 2 or Node 3 is unavailable during the transaction and then eventually comes back online.</p>
+        <button 
+          className="btn btn-secondary mb-3"
+        >
+          Trigger transaction
+        </button>
       </div>
+      
 
       <style jsx>{`
         .sidebar {
@@ -300,5 +325,6 @@ export default function Home() {
         }
       `}</style>
     </div>
+    
   )
 }
