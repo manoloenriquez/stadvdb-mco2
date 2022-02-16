@@ -261,5 +261,41 @@ export default {
       await nodeThree.query('ROLLBACK')
       await nodeOne.query('ROLLBACK')
     }
+  },
+  recoveryCase3: async (id: string, isolation: string): Promise<void> => {
+
+    let dataCentral = []
+
+    let selectMovies = `
+      SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
+    `
+
+    let insertMovie = `
+      INSERT INTO table_name (column1, column2, column3, ...)
+    `
+    let values = `
+      VALUES (value1, value2, value3, ...)
+      `
+      
+    // tries to update central node when it is offline
+    try {
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeOne.query('START TRANSACTION')
+
+      await nodeOne.query('SELECT sleep(5)')
+
+      dataCentral = await nodeOne.query(selectMovies)
+      await nodeOne.query(insertMovie)
+      await nodeOne.query(values)
+
+      await nodeOne.query('COMMIT')
+    } catch (err) {
+      console.log(`Central Node: ${err.message}`)
+      await nodeOne.query('ROLLBACK')
+    }
+
+  },
+  recoveryCase4: async (id: string, isolation: string): Promise<void> => {
   }
 }

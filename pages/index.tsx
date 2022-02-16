@@ -291,6 +291,25 @@ export default function Home() {
           Trigger transaction
         </button>
 
+        <div className="d-flex gap-3">
+          <div>
+            <h4>Central Node</h4>
+            {!movies ? (
+              <Loading />
+            ) : (
+              <>
+              <Table movies={movies} isolation={isolation} />
+              <button 
+                className="btn btn-light border float-end"
+                onClick={() => setOffsetM(offsetM + QUERY_LIMIT)}
+              >
+                Next {QUERY_LIMIT}
+              </button>
+              </>
+            )}
+          </div>
+        </div>
+
         <h4 className="mt-4">Case 4</h4>
         <p>*Node 2 or Node 3 is unavailable during the transaction and then eventually comes back online.</p>
         <button 
