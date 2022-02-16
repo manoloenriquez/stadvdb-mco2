@@ -19,6 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case 'DELETE':
       const { id }: any = req.body
       isolation = req.body.isolation
-      res.status(200).json(await controller.deleteMovie(id, isolation))
+      res.status(200).json(await controller.delete2Writes(id, isolation))
   }
 }

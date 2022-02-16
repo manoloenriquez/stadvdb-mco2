@@ -220,58 +220,20 @@ export default {
       await nodeOne.query('ROLLBACK')
     }
   },
-  getDirectors: async (offset: any, isolation?: string): Promise<Array<Director>> => {
-    if (!nodeOne.isOn && !nodeTwo.isOn && !nodeThree.isOn) return null
-
-    let data = []
-    
-    if (nodeOne.isOn) {
-      let query = `SELECT * FROM directors_dim LIMIT ${offset}, ${QUERY_LIMIT}`
-
-      try {
-        await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-        await nodeOne.query('START TRANSACTION')
-        data = await nodeOne.query(query)
-        await nodeOne.query('COMMIT')
-      } catch (err) {
-        console.log(err.message)
-      }
-  
-    } else if (nodeTwo.isOn && nodeThree.isOn) {
-      let query = `SELECT * FROM directors_dim LIMIT ${offset / 2}, ${QUERY_LIMIT / 2}`
-
-      try {
-        await nodeTwo.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-        await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-
-        await nodeTwo.query('START TRANSACTION')
-        await nodeThree.query('START TRANSACTION')
-
-        data = [...await nodeTwo.query(query)]
-        data = [...data, ...await nodeThree.query(query)]
-
-        await nodeTwo.query('COMMIT')
-        await nodeThree.query('COMMIT')
-      } catch (err) {
-        console.log(err.message)
-      }
-    }
-    
-    return data
-  },
-  deleteDirector: async (id: string, isolation: string): Promise<Array<Director>> => {
-    let data = []
+  delete2Writes: async (id: string, isolation: string): Promise<void> => {
+    let dataCentral = []
+    let dataNode = []
 
     let delRoles = `
-      DELETE FROM roles_fact WHERE director_id = ${id}
+      DELETE FROM roles_fact WHERE movie_id = ${id}
     `
 
-    let delDirectors = `
-      DELETE FROM directors_dim WHERE director_id = ${id}
+    let delMovies = `
+      DELETE FROM movies_dim WHERE movie_id = ${id}
     `
 
-    let selectDirectors = `
-      SELECT * FROM directors_dim LIMIT ${QUERY_LIMIT}
+    let selectMovies = `
+      SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
     `
 
     if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
@@ -282,23 +244,20 @@ export default {
       await nodeTwo.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
       await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
 
-      await nodeTwo.query('START TRANSACTION')
       await nodeOne.query('START TRANSACTION')
-
-      await nodeTwo.query(delRoles)
-      await nodeTwo.query(delDirectors)
-
+      dataCentral = await nodeOne.query(selectMovies)
       await nodeOne.query(delRoles)
-      await nodeOne.query(delDirectors)
+      await nodeOne.query(delMovies)
 
-      data = await nodeOne.query(selectDirectors)
+      await nodeTwo.query('START TRANSACTION')
+      dataNode = await nodeTwo.query(selectMovies)
+      await nodeTwo.query(delRoles)
+      await nodeTwo.query(delMovies)
 
       await nodeTwo.query('COMMIT')
       await nodeOne.query('COMMIT')
-
-      return data
     } catch (err) {
-      console.log(err.message)
+      console.log(`Node 2: ${err.message}`)
       await nodeTwo.query('ROLLBACK')
       await nodeOne.query('ROLLBACK')
     }
@@ -308,23 +267,85 @@ export default {
       await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
       await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
 
-      await nodeThree.query('START TRANSACTION')
       await nodeOne.query('START TRANSACTION')
-
-      await nodeThree.query(delRoles)
-      await nodeThree.query(delDirectors)
-
+      dataCentral = await nodeOne.query(selectMovies)
       await nodeOne.query(delRoles)
-      await nodeOne.query(delDirectors)
+      await nodeOne.query(delMovies)
 
-      data = await nodeOne.query(selectDirectors)
+      await nodeThree.query('START TRANSACTION')
+      dataNode = await nodeTwo.query(selectMovies)
+      await nodeThree.query(delRoles)
+      await nodeThree.query(delMovies)
 
       await nodeThree.query('COMMIT')
       await nodeOne.query('COMMIT')
-
-      return data
     } catch (err) {
-      console.log(err.message)
+      console.log(`Node 3: ${err.message}`)
+      await nodeThree.query('ROLLBACK')
+      await nodeOne.query('ROLLBACK')
+    }
+  },
+  delete1Write: async (id: string, isolation: string): Promise<void> => {
+    let dataCentral = []
+    let dataNode = []
+
+    let delRoles = `
+      DELETE FROM roles_fact WHERE movie_id = ${id}
+    `
+
+    let delMovies = `
+      DELETE FROM movies_dim WHERE movie_id = ${id}
+    `
+
+    let selectMovies = `
+      SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
+    `
+
+    if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
+    console.log(`deleting ${id} with ${isolation}`)
+
+    // Delete from central node and node 2
+    try {
+      await nodeTwo.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeOne.query('START TRANSACTION')
+      dataCentral = await nodeOne.query(selectMovies)
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delMovies)
+
+      await nodeTwo.query('START TRANSACTION')
+      dataNode = await nodeTwo.query(selectMovies)
+      // await nodeTwo.query(delRoles)
+      // await nodeTwo.query(delMovies)
+
+      await nodeTwo.query('COMMIT')
+      await nodeOne.query('COMMIT')
+    } catch (err) {
+      console.log(`Node 2: ${err.message}`)
+      await nodeTwo.query('ROLLBACK')
+      await nodeOne.query('ROLLBACK')
+    }
+
+    // Delete from central node and node 3
+    try {
+      await nodeThree.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
+
+      await nodeOne.query('START TRANSACTION')
+      dataCentral = await nodeOne.query(selectMovies)
+      await nodeOne.query(delRoles)
+      await nodeOne.query(delMovies)
+
+      await nodeThree.query('START TRANSACTION')
+      dataNode = await nodeTwo.query(selectMovies)
+      // await nodeThree.query(delRoles)
+      // await nodeThree.query(delMovies)
+
+      await nodeThree.query('COMMIT')
+      await nodeOne.query('COMMIT')
+    } catch (err) {
+      console.log(`Node 3: ${err.message}`)
       await nodeThree.query('ROLLBACK')
       await nodeOne.query('ROLLBACK')
     }
