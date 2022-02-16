@@ -16,9 +16,6 @@ export default function Home() {
   const [ movies3, setMovies3 ] = useState<Array<Movie>>(null)
   const [ movies4, setMovies4 ] = useState<Array<Movie>>(null)
   const [ offsetM, setOffsetM ] = useState<number>(0)
-  // const [ directors, setDirectors ] = useState<Array<Director>>(null)
-  // const [ directors1, setDirectors1 ] = useState<Array<Director>>(null)
-  // const [ offsetD, setOffsetD ] = useState<number>(0)
   const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
 
   const [ node1status, setNode1Status ] = useState<boolean>()
@@ -69,7 +66,8 @@ export default function Home() {
     axios.delete('/api/movies', {
       data: {
         id: movie_id,
-        isolation: isolation
+        isolation: isolation,
+        operation: 2
       }
     }).then(() => {
       console.log('fetching data')
@@ -137,18 +135,6 @@ export default function Home() {
       setMovies4(res.data)
     })
   }, [offsetM, isolation, node1status, node2status, node3status])
-
-  // useEffect(() => {
-  //   setDirectors(null)
-  //   axios.get('/api/directors', {
-  //     params: {
-  //       offset: offsetD,
-  //       isolation: isolation
-  //     }
-  //   }).then(res => {
-  //     setDirectors(res.data)
-  //   })
-  // }, [offsetD, isolation, node1status, node2status, node3status])
 
   return (
     <div className="d-flex h-100">
