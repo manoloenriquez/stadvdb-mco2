@@ -46,6 +46,8 @@ export default class DBNode {
 
   async query(q: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      if (!this.isOn || this.conn.state === 'disconnected') reject('Node not connected')
+
       this.conn.query(q, (err: MysqlError, result) => {
         if (err) reject(err)
         resolve(result)
