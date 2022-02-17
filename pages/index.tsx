@@ -5,7 +5,7 @@ import Table from '../components/Table'
 
 const Loading = () => (
   <div className="p-5">
-    <h3>Loading...</h3>
+    <h3>No results.</h3>
   </div>
 )
 
@@ -18,44 +18,77 @@ export default function Home() {
   const [ c3movies1, setC3Movies1 ] = useState<Array<Movie>>(null)
   const [ c3movies2, setC3Movies2 ] = useState<Array<Movie>>(null)
 
-  const [ gc1movies1, setGC1Movies1 ] = useState<Array<Movie>>(null)
-  const [ gc1movies2, setGC1Movies2 ] = useState<Array<Movie>>(null)
-  const [ gc2movies1, setGC2Movies1 ] = useState<Array<Movie>>(null)
-  const [ gc2movies2, setGC2Movies2 ] = useState<Array<Movie>>(null)
-  const [ gc3movies1, setGC3Movies1 ] = useState<Array<Movie>>(null)
-  const [ gc3movies2, setGC3Movies2 ] = useState<Array<Movie>>(null)
-  const [ gc4movies1, setGC4Movies1 ] = useState<Array<Movie>>(null)
-  const [ gc4movies2, setGC4Movies2 ] = useState<Array<Movie>>(null)
-  
+  const [ gc13initial, setGC13Initial ] = useState<Array<Movie>>(null)
+  const [ gc13movies1, setGC13Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc13movies2, setGC13Movies2 ] = useState<Array<Movie>>(null)
+
+  const [ gc24initial, setGC24Initial ] = useState<Array<Movie>>(null)
+  const [ gc24movies1, setGC24Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc24movies2, setGC24Movies2 ] = useState<Array<Movie>>(null)
 
   const [ node1status, setNode1Status ] = useState<boolean>()
   const [ node2status, setNode2Status ] = useState<boolean>()
   const [ node3status, setNode3Status ] = useState<boolean>()
 
-  const toggleNode = (node: number) => {
-    axios.post('/api/nodes', {
-      node: node,
-    }).then(res => {
-      console.log(res.data)
-      switch (node) {
-        case 1:
-          setNode1Status(res.data.result)
-          break
-        case 2:
-          setNode2Status(res.data.result)
-          break
-        case 3:
-          setNode3Status(res.data.result)
-      }
+  const toggleNode = async (node: number): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
+      axios.post('/api/nodes', {
+        node: node,
+      }).then(res => {
+        switch (node) {
+          case 1:
+            setNode1Status(res.data.result)
+            break
+          case 2:
+            setNode2Status(res.data.result)
+            break
+          case 3:
+            setNode3Status(res.data.result)
+        }
+        resolve()
+      }).catch(err => reject(err))
     })
   }
 
-  const case2Trigger = (id: number) => {
+  const initialLoad = () => {
+    setC1Movies1(null)
+    setC1Movies2(null)
+    setC2Movies1(null)
+    setC2Movies2(null)
+    setC3Movies1(null)
+    setC3Movies2(null)
+
+    axios.get('/api/movies', {
+      params: {
+        isolation: isolation
+      }
+    }).then(res => {
+      setC1Movies1(res.data)
+      setC2Movies1(res.data)
+      setC3Movies1(res.data)
+      setGC13Initial(res.data)
+      setGC24Initial(res.data)
+    })
+
+    axios.get('/api/movies', {
+      params: {
+        isolation: isolation,
+        node: true
+      }
+    }).then(res => {
+      setC1Movies2(res.data)
+      setC2Movies2(res.data)
+      setC3Movies2(res.data)
+    })
+  }
+
+  const case2Trigger = (id: number, year: number) => {
     if (!id) return
 
     axios.delete('/api/movies', {
       data: {
         id: id,
+        year: year,
         isolation: isolation
       }
     }).then(res => {
@@ -117,6 +150,102 @@ export default function Home() {
     })
   }
 
+  const gCase13Trigger = async () => {
+    let id = gc13initial[0].movie_id
+    let year = gc13initial[0].movie_year
+
+    // Prep for case 1
+    if (node1status) {
+      await toggleNode(1) // turn off central node
+    }
+
+    // Simulate case 1
+    axios.delete('/api/movies', {
+      data: {
+        id: id,
+        year: year,
+        isolation: isolation
+      }
+    }).then(res => {
+      axios.get('/api/movies', {
+        params: {
+          isolation: isolation,
+          node: true
+        }
+      }).then(res => {
+        setGC13Movies1(res.data)
+      })
+    }).catch(err => {
+      console.log(err)
+    }).finally(async () => {
+      // Simulate case 3
+      await toggleNode(1) // central node comes back on
+      axios.delete('/api/movies', {
+        data: {
+          id: id,
+          year: year,
+          isolation: isolation
+        }
+      }).then(res => {
+        console.log(res.data)
+        setGC13Movies2(res.data)
+      }).catch(err => console.log(err))
+    })
+  }
+
+  const gCase24Trigger = async () => {
+    let id = gc24initial[0].movie_id
+    let year = gc24initial[0].movie_year
+
+    // Prep for case 2
+    if (!node2status) {
+      await toggleNode(2)
+    }
+
+    if (!node3status) {
+      await toggleNode(3)
+    }
+
+    // Simulate case 2
+    axios.delete('/api/movies', {
+      data: {
+        id: id,
+        year: year,
+        isolation: isolation
+      }
+    }).then(res => {
+      setGC24Movies1(res.data)
+    }).catch(err => {
+      setGC24Movies1(null)
+    })
+    toggleNode(2)
+    toggleNode(3)
+
+    // Simulate case 4
+    await toggleNode(2) // node 2 comes back online
+    await toggleNode(3) // node 3 comes back online
+    axios.delete('/api/movies', {
+      data: {
+        id: id,
+        year: year,
+        isolation: isolation
+      }
+    }).then(res => {
+      axios.get('/api/movies', {
+        params: {
+          isolation: isolation,
+          node: true
+        }
+      }).then(res => {
+        setGC24Movies2(res.data)
+      }).catch(err => {
+        setGC24Movies2(null)
+      })
+    }).catch(err => {
+      setGC24Movies2(null)
+    })
+  }
+
   useEffect(() => {
     for (let node = 1; node <= 3; node++) {
       axios.get('/api/nodes', {
@@ -140,34 +269,8 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    setC1Movies1(null)
-    setC1Movies2(null)
-    setC2Movies1(null)
-    setC2Movies2(null)
-    setC3Movies1(null)
-    setC3Movies2(null)
-
-    axios.get('/api/movies', {
-      params: {
-        isolation: isolation
-      }
-    }).then(res => {
-      setC1Movies1(res.data)
-      setC2Movies1(res.data)
-      setC3Movies1(res.data)
-    })
-
-    axios.get('/api/movies', {
-      params: {
-        isolation: isolation,
-        node: true
-      }
-    }).then(res => {
-      setC1Movies2(res.data)
-      setC2Movies2(res.data)
-      setC3Movies2(res.data)
-    })
-  }, [isolation, node1status, node2status, node3status])
+    initialLoad()
+  }, [isolation])
 
   return (
     <div className="d-flex h-100">
@@ -179,6 +282,12 @@ export default function Home() {
             *Node 2 Status: {node2status ? 'Online' : 'Offline'} <br />
             *Node 3 Status: {node3status ? 'Online' : 'Offline'} <br />
           </div>
+          <button 
+            className="btn btn-secondary"
+            onClick={() => initialLoad()}
+          >
+            Refresh
+          </button>
           <div className="p-4">
             <div className="d-flex align-items-center">
               <p className="mb-0 me-3">Isolation level:</p>
@@ -251,7 +360,8 @@ export default function Home() {
         <button 
           className="btn btn-secondary mb-3"
           onClick={() => case2Trigger(
-            c2movies1 ? c2movies1[0].movie_id : c2movies2 ? c2movies2[0].movie_id : undefined
+            c2movies1 ? c2movies1[0].movie_id : c2movies2 ? c2movies2[0].movie_id : undefined,
+            c2movies1 ? c2movies1[0].movie_year : c2movies2 ? c2movies2[0].movie_year : undefined
           )}
         >
           Delete first row
@@ -318,38 +428,77 @@ export default function Home() {
         </div>
         <h3 className="mt-4">Global Failure Recovery</h3>
         
-        <h4 className="mt-4">Case 1</h4>
+        <h4 className="mt-4">Case 1 & 3</h4>
         <p>*Transaction failure in writing to central node when attempting to replicate the transaction from Node 1 or Node 2</p>
-        
-        <h4 className="mt-4">Case 2</h4>
-        <p>*Transaction failure in writing to Node 2 and Node 3 when attempting to replicate the transaction from central node</p>
-        
-        <h4 className="mt-4">Case 3</h4>
         <p>*The central node is unavailable during the transaction and then eventually comes back online.</p>
         <button 
           className="btn btn-secondary mb-3"
+          onClick={() => gCase13Trigger()}
         >
           Trigger transaction
         </button>
-
-        {/* <div className="d-flex gap-3">
+        <div>
+          <h4>Initial table</h4>
+          {!gc13initial ? (
+            <Loading />
+          ) : (
+            <Table movies={gc13initial} />
+          )}
+        </div>
+        <div className="d-flex gap-3 mb-4">
           <div>
-            <h4>Central Node</h4>
-            {!movies ? (
+            <h4>Case 1 results</h4>
+            {!gc13movies1 ? (
               <Loading />
             ) : (
-              <Table movies={movies} isolation={isolation} />
+              <Table movies={gc13movies1} />
             )}
           </div>
-        </div> */}
+          <div>
+            <h4>Case 3 results</h4>
+            {!gc13movies2 ? (
+              <Loading />
+            ) : (
+              <Table movies={gc13movies2} />
+            )}
+          </div>
+        </div>
 
-        <h4 className="mt-4">Case 4</h4>
+        <h4 className="mt-4">Case 2 & 4</h4>
+        <p>*Transaction failure in writing to Node 2 and Node 3 when attempting to replicate the transaction from central node</p>
         <p>*Node 2 or Node 3 is unavailable during the transaction and then eventually comes back online.</p>
         <button 
           className="btn btn-secondary mb-3"
+          onClick={() => gCase24Trigger()}
         >
           Trigger transaction
         </button>
+        <div>
+          <h4>Initial table</h4>
+          {!gc24initial ? (
+            <Loading />
+          ) : (
+            <Table movies={gc24initial} />
+          )}
+        </div>
+        <div className="d-flex gap-3 mb-4">
+          <div>
+            <h4>Case 2 results</h4>
+            {!gc24movies1 ? (
+              <Loading />
+            ) : (
+              <Table movies={gc24movies1} />
+            )}
+          </div>
+          <div>
+            <h4>Case 4 results</h4>
+            {!gc24movies2 ? (
+              <Loading />
+            ) : (
+              <Table movies={gc24movies2} />
+            )}
+          </div>
+        </div>
       </div>
       
 

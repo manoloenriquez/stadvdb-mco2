@@ -42,9 +42,6 @@ async function getCentralNode(isolation: string) {
 
 async function getFromNodes(isolation: string) {
   if (!nodeTwo.isOn || !nodeThree.isOn) return []
-  
-  console.log(nodeTwo.isOn)
-  console.log(nodeThree.isOn)
 
   let data = []
   let query = `SELECT * FROM movies_dim ORDER BY movie_id DESC LIMIT ${QUERY_LIMIT}`
@@ -110,10 +107,10 @@ export default {
     }
   },
   getMovies: async (isolation: string, node?: any): Promise<Array<Movie>> => {
-    if (!nodeOne.isOn && !nodeTwo.isOn && !nodeThree.isOn) return null
+    if (!nodeOne.isOn && !nodeTwo.isOn && !nodeThree.isOn) return []
 
     let data = node === undefined ? await getCentralNode(isolation) : await getFromNodes(isolation)
-    
+
     return data
   },
   deleteMovie: async (id: number, year: number, isolation: string): Promise<Array<Movie>> => {
@@ -131,7 +128,6 @@ export default {
       SELECT * FROM movies_dim ORDER BY movie_id DESC LIMIT ${QUERY_LIMIT}
     `
 
-    if (!nodeOne.isOn && (!nodeTwo.isOn || !nodeThree.isOn)) return
     console.log(`deleting ${id} with ${isolation}`)
     
     if (year < 1980) { // Delete from central node and node 2
@@ -150,7 +146,7 @@ export default {
         await nodeOne.query(delRoles)
         await nodeOne.query(delMovies)
   
-        data = await nodeOne.query(selectMovies)
+        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeTwo.query(selectMovies)
   
         console.log('committing delete transaction on node 1 and node 2')
   
@@ -163,6 +159,8 @@ export default {
         console.log('rolled back delete transaction on node 1 and node 2')
         await nodeTwo.query('ROLLBACK')
         await nodeOne.query('ROLLBACK')
+      } finally {
+        return data
       }
     } else { // Delete from central node and node 3
       try {
@@ -180,7 +178,7 @@ export default {
         await nodeOne.query(delRoles)
         await nodeOne.query(delMovies)
   
-        data = await nodeOne.query(selectMovies)
+        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeThree.query(selectMovies)
   
         console.log('committing delete transaction on node 1 and node 3')
   
@@ -193,10 +191,10 @@ export default {
         console.log('rolled back delete transaction on node 1 and node 3')
         await nodeThree.query('ROLLBACK')
         await nodeOne.query('ROLLBACK')
+      } finally {
+        return data
       }
     }
-
-    return data
   },
   insertMovie: async (isolation: string): Promise<Array<Movie>> => {
     let newMovie: Movie = {
@@ -253,44 +251,8 @@ export default {
       console.log('rolling back insert transactions')
       await nodeOne.query('ROLLBACK')
       await node.query('ROLLBACK')
+    } finally {
+      return data
     }
-
-    return data
-  },
-  recoveryCase3: async (id: string, isolation: string): Promise<void> => {
-
-    let dataCentral = []
-
-    let selectMovies = `
-      SELECT * FROM movies_dim LIMIT ${QUERY_LIMIT}
-    `
-
-    let insertMovie = `
-      INSERT INTO table_name (column1, column2, column3, ...)
-    `
-    let values = `
-      VALUES (value1, value2, value3, ...)
-      `
-      
-    // tries to update central node when it is offline
-    try {
-      await nodeOne.query(`SET SESSION TRANSACTION ISOLATION LEVEL ${isolation}`)
-
-      await nodeOne.query('START TRANSACTION')
-
-      await nodeOne.query('SELECT sleep(5)')
-
-      dataCentral = await nodeOne.query(selectMovies)
-      await nodeOne.query(insertMovie)
-      await nodeOne.query(values)
-
-      await nodeOne.query('COMMIT')
-    } catch (err) {
-      console.log(`Central Node: ${err.message}`)
-      await nodeOne.query('ROLLBACK')
-    }
-
-  },
-  recoveryCase4: async (id: string, isolation: string): Promise<void> => {
   }
 }

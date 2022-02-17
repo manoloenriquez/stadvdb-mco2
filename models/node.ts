@@ -37,10 +37,15 @@ export default class DBNode {
         this.isOn = true
         this.conn = conn
 
+        console.log('recovering node...')
+        console.log(this.recovery)
         while (this.recovery.length > 0) {
           let q = this.recovery.shift()
+          console.log(q)
           await this.query(q)
         }
+        await this.query('COMMIT')
+        console.log('node recovered')
         resolve()
       })
     })
@@ -54,9 +59,11 @@ export default class DBNode {
   async query(q: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this.recovery.push(q)
+      console.log(this.recovery)
       if (!this.isOn || this.conn.state === 'disconnected') reject('Node not connected')
       this.conn.query(q, (err: MysqlError, result) => {
         if (err) reject(err)
+        this.recovery.pop()
         resolve(result)
       })
     })
