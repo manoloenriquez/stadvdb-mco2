@@ -7,6 +7,7 @@ export default class DBNode {
   pool: Pool
   conn: PoolConnection
   isOn: boolean
+  recovery: Array<string>
 
   constructor(host: string, user: string, password: string) {
     this.host = host
@@ -22,11 +23,12 @@ export default class DBNode {
     })
 
     this.isOn = false
+    this.recovery = []
   }
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.pool.getConnection((err, conn) => {
+      this.pool.getConnection(async (err, conn) => {
         if (err) {
           reject(err)
         }
@@ -34,6 +36,11 @@ export default class DBNode {
         console.log(`Connected to ${this.host}`)
         this.isOn = true
         this.conn = conn
+
+        while (this.recovery.length > 0) {
+          let q = this.recovery.shift()
+          await this.query(q)
+        }
         resolve()
       })
     })
@@ -46,8 +53,8 @@ export default class DBNode {
 
   async query(q: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      this.recovery.push(q)
       if (!this.isOn || this.conn.state === 'disconnected') reject('Node not connected')
-
       this.conn.query(q, (err: MysqlError, result) => {
         if (err) reject(err)
         resolve(result)

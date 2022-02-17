@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import type { Movie, Director } from '../lib/types'
+import type { Movie } from '../lib/types'
 import Table from '../components/Table'
 
 const Loading = () => (
@@ -10,13 +10,23 @@ const Loading = () => (
 )
 
 export default function Home() {
+  const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
   const [ c1movies1, setC1Movies1 ] = useState<Array<Movie>>(null)
   const [ c1movies2, setC1Movies2 ] = useState<Array<Movie>>(null)
   const [ c2movies1, setC2Movies1 ] = useState<Array<Movie>>(null)
   const [ c2movies2, setC2Movies2 ] = useState<Array<Movie>>(null)
   const [ c3movies1, setC3Movies1 ] = useState<Array<Movie>>(null)
   const [ c3movies2, setC3Movies2 ] = useState<Array<Movie>>(null)
-  const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
+
+  const [ gc1movies1, setGC1Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc1movies2, setGC1Movies2 ] = useState<Array<Movie>>(null)
+  const [ gc2movies1, setGC2Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc2movies2, setGC2Movies2 ] = useState<Array<Movie>>(null)
+  const [ gc3movies1, setGC3Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc3movies2, setGC3Movies2 ] = useState<Array<Movie>>(null)
+  const [ gc4movies1, setGC4Movies1 ] = useState<Array<Movie>>(null)
+  const [ gc4movies2, setGC4Movies2 ] = useState<Array<Movie>>(null)
+  
 
   const [ node1status, setNode1Status ] = useState<boolean>()
   const [ node2status, setNode2Status ] = useState<boolean>()
