@@ -146,9 +146,9 @@ export default {
         await nodeOne.query(delRoles)
         await nodeOne.query(delMovies)
   
-        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeTwo.query(selectMovies)
-  
         console.log('committing delete transaction on node 1 and node 2')
+
+        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeTwo.query(selectMovies)
   
         await nodeTwo.query('COMMIT')
         await nodeOne.query('COMMIT')
@@ -156,9 +156,9 @@ export default {
         console.log('committed delete transaction on node 1 and node 2')
       } catch (err) {
         console.log(err.message)
-        console.log('rolled back delete transaction on node 1 and node 2')
-        await nodeTwo.query('ROLLBACK')
-        await nodeOne.query('ROLLBACK')
+        // console.log('rolled back delete transaction on node 1 and node 2')
+        // await nodeTwo.query('ROLLBACK')
+        // await nodeOne.query('ROLLBACK')
       } finally {
         return data
       }
@@ -178,9 +178,9 @@ export default {
         await nodeOne.query(delRoles)
         await nodeOne.query(delMovies)
   
-        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeThree.query(selectMovies)
-  
         console.log('committing delete transaction on node 1 and node 3')
+
+        data = nodeOne.isOn ? await nodeOne.query(selectMovies) : await nodeThree.query(selectMovies)
   
         await nodeThree.query('COMMIT')
         await nodeOne.query('COMMIT')
@@ -188,9 +188,9 @@ export default {
         console.log('committed delete transaction on node 1 and node 3')
       } catch (err) {
         console.log(err.message)
-        console.log('rolled back delete transaction on node 1 and node 3')
-        await nodeThree.query('ROLLBACK')
-        await nodeOne.query('ROLLBACK')
+        // console.log('rolled back delete transaction on node 1 and node 3')
+        // await nodeThree.query('ROLLBACK')
+        // await nodeOne.query('ROLLBACK')
       } finally {
         return data
       }
@@ -248,9 +248,9 @@ export default {
       console.log('committed insert transaction')
     } catch (err) {
       console.log(err.message)
-      console.log('rolling back insert transactions')
-      await nodeOne.query('ROLLBACK')
-      await node.query('ROLLBACK')
+      // console.log('rolling back insert transactions')
+      // await nodeOne.query('ROLLBACK')
+      // await node.query('ROLLBACK')
     } finally {
       return data
     }

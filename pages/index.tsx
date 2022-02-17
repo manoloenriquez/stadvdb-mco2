@@ -9,6 +9,8 @@ const Loading = () => (
   </div>
 )
 
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+
 export default function Home() {
   const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
   const [ c1movies1, setC1Movies1 ] = useState<Array<Movie>>(null)
@@ -125,27 +127,6 @@ export default function Home() {
         isolation: isolation
       }
     }).then(res => {
-      setC3Movies2(res.data)
-    })
-  }
-
-  const case3TriggerDelUpdate = (id: number, year: number) => {
-    if (!id || !year) return
-
-    axios.delete('/api/movies', {
-      data: {
-        id: id,
-        year: year,
-        isolation: isolation
-      }
-    }).then(res => {
-      setC3Movies1(res.data)
-    })
-
-    axios.post('/api/movies', {
-      isolation: isolation
-    }).then(res => {
-      console.log(res.data)
       setC3Movies2(res.data)
     })
   }
@@ -398,15 +379,6 @@ export default function Home() {
           )}
         >
           Delete first 2 rows
-        </button> <br />
-        <button 
-          className="btn btn-secondary mb-3"
-          onClick={() => case3TriggerDelUpdate(
-            c3movies1 ? c3movies1[1].movie_id : c3movies2 ? c3movies2[1].movie_id : undefined, 
-            c3movies1 ? c3movies1[1].movie_year : c3movies2 ? c3movies2[1].movie_year : undefined
-          )}
-        >
-          Delete second row and Insert new movie
         </button>
         <div className="d-flex gap-3 mb-4">
           <div>
