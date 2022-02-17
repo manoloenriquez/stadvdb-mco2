@@ -41,6 +41,8 @@ export default function Home() {
   }
 
   const case2Trigger = (id: number) => {
+    if (!id) return
+
     axios.delete('/api/movies', {
       data: {
         id: id,
@@ -52,7 +54,8 @@ export default function Home() {
 
     axios.get('/api/movies', {
       params: {
-        isolation: isolation
+        isolation: isolation,
+        node: true
       }
     }).then(res => {
       setC2Movies2(res.data)
@@ -60,6 +63,8 @@ export default function Home() {
   }
 
   const case3Trigger2Movies = (movie1: number, movie1year: number, movie2: number, movie2year: number) => {
+    if (!movie1 || !movie1year || !movie2 || !movie2year) return
+    
     axios.delete('/api/movies', {
       data: {
         id: movie1,
@@ -82,6 +87,8 @@ export default function Home() {
   }
 
   const case3TriggerDelUpdate = (id: number, year: number) => {
+    if (!id || !year) return
+
     axios.delete('/api/movies', {
       data: {
         id: id,
@@ -102,24 +109,23 @@ export default function Home() {
 
   useEffect(() => {
     for (let node = 1; node <= 3; node++) {
-      // axios.get('/api/nodes', {
-      //   params: {
-      //     node: node,
-      //   }
-      // }).then(res => {
-      //   console.log(res.data)
-      //   switch (node) {
-      //     case 1:
-      //       setNode1Status(res.data.result)
-      //       break
-      //     case 2:
-      //       setNode2Status(res.data.result)
-      //       break
-      //     case 3:
-      //       setNode3Status(res.data.result)
-      //   }
-      // })
-      toggleNode(node)
+      axios.get('/api/nodes', {
+        params: {
+          node: node,
+        }
+      }).then(res => {
+        console.log(res.data)
+        switch (node) {
+          case 1:
+            setNode1Status(res.data.result)
+            break
+          case 2:
+            setNode2Status(res.data.result)
+            break
+          case 3:
+            setNode3Status(res.data.result)
+        }
+      })
     }
   }, [])
 
@@ -234,7 +240,9 @@ export default function Home() {
         <p>*Table 1 is writing, Table 2 is reading</p>
         <button 
           className="btn btn-secondary mb-3"
-          onClick={() => case2Trigger(c2movies1[0].movie_id)}
+          onClick={() => case2Trigger(
+            c2movies1 ? c2movies1[0].movie_id : c2movies2 ? c2movies2[0].movie_id : undefined
+          )}
         >
           Delete first row
         </button>
@@ -263,17 +271,20 @@ export default function Home() {
         <button 
           className="btn btn-secondary mb-3"
           onClick={() => case3Trigger2Movies(
-            c3movies1[0].movie_id, 
-            c3movies1[0].movie_year, 
-            c3movies1[1].movie_id,
-            c3movies1[1].movie_year
+            c3movies1 ? c3movies1[0].movie_id : c3movies2 ? c3movies2[0].movie_id : undefined, 
+            c3movies1 ? c3movies1[0].movie_year : c3movies2 ? c3movies2[0].movie_year : undefined, 
+            c3movies1 ? c3movies1[1].movie_id : c3movies2 ? c3movies2[1].movie_id : undefined,
+            c3movies1 ? c3movies1[1].movie_year : c3movies2 ? c3movies2[1].movie_year : undefined
           )}
         >
           Delete first 2 rows
         </button> <br />
         <button 
           className="btn btn-secondary mb-3"
-          onClick={() => case3TriggerDelUpdate(c3movies1[1].movie_id, c3movies1[1].movie_year)}
+          onClick={() => case3TriggerDelUpdate(
+            c3movies1 ? c3movies1[1].movie_id : c3movies2 ? c3movies2[1].movie_id : undefined, 
+            c3movies1 ? c3movies1[1].movie_year : c3movies2 ? c3movies2[1].movie_year : undefined
+          )}
         >
           Delete second row and Insert new movie
         </button>

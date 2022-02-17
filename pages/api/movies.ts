@@ -13,7 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json(await controller.getMovies(isolation, node))
       break
     case 'POST':
-      console.log(req)
       isolation = req.body.isolation
       res.status(200).json(await controller.insertMovie(isolation))
       break
