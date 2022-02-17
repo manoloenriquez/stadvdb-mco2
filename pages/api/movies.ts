@@ -8,23 +8,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   switch (req.method) {
     case 'GET':
-      const { offset }: any = req.query
       isolation = req.query.isolation
-      res.status(200).json(await controller.getMovies(offset, isolation))
+      const { node } = req.query
+      res.status(200).json(await controller.getMovies(isolation, node))
       break
     case 'POST':
+      console.log(req)
+      isolation = req.body.isolation
+      res.status(200).json(await controller.insertMovie(isolation))
       break
     case 'UPDATE':
       break
     case 'DELETE':
-      const { id, operation }: any = req.body
+      const { id, year }: any = req.body
       isolation = req.body.isolation
-
-      if (operation) {
-        await controller.delete2Writes(id, isolation)
-        res.status(200).json({ message: 'done' })
-      } else {
-        res.status(200).json(await controller.deleteMovie(id, isolation))
-      }
+      res.status(200).json(await controller.deleteMovie(id, year, isolation))
   }
 }

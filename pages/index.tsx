@@ -10,19 +10,17 @@ const Loading = () => (
 )
 
 export default function Home() {
-  const [ movies, setMovies ] = useState<Array<Movie>>(null)
-  const [ movies1, setMovies1 ] = useState<Array<Movie>>(null)
-  const [ movies2, setMovies2 ] = useState<Array<Movie>>(null)
-  const [ movies3, setMovies3 ] = useState<Array<Movie>>(null)
-  const [ movies4, setMovies4 ] = useState<Array<Movie>>(null)
-  const [ offsetM, setOffsetM ] = useState<number>(0)
+  const [ c1movies1, setC1Movies1 ] = useState<Array<Movie>>(null)
+  const [ c1movies2, setC1Movies2 ] = useState<Array<Movie>>(null)
+  const [ c2movies1, setC2Movies1 ] = useState<Array<Movie>>(null)
+  const [ c2movies2, setC2Movies2 ] = useState<Array<Movie>>(null)
+  const [ c3movies1, setC3Movies1 ] = useState<Array<Movie>>(null)
+  const [ c3movies2, setC3Movies2 ] = useState<Array<Movie>>(null)
   const [ isolation, setIsolation ] = useState<string>('READ UNCOMMITTED')
 
   const [ node1status, setNode1Status ] = useState<boolean>()
   const [ node2status, setNode2Status ] = useState<boolean>()
   const [ node3status, setNode3Status ] = useState<boolean>()
-
-  const QUERY_LIMIT = 10
 
   const toggleNode = (node: number) => {
     axios.post('/api/nodes', {
@@ -49,92 +47,111 @@ export default function Home() {
         isolation: isolation
       }
     }).then(res => {
-      setMovies1(res.data)
+      setC2Movies1(res.data)
     })
 
     axios.get('/api/movies', {
       params: {
-        offset: 0,
         isolation: isolation
       }
     }).then(res => {
-      setMovies2(res.data)
+      setC2Movies2(res.data)
     })
   }
 
-  const case3Trigger = (movie_id: number) => {
+  const case3Trigger2Movies = (movie1: number, movie1year: number, movie2: number, movie2year: number) => {
     axios.delete('/api/movies', {
       data: {
-        id: movie_id,
-        isolation: isolation,
-        operation: 2
+        id: movie1,
+        year: movie1year,
+        isolation: isolation
       }
-    }).then(() => {
-      console.log('fetching data')
-      axios.get('/api/movies', {
-        params: {
-          offset: 0,
-          isolation: isolation
-        }
-      }).then(res => {
-        console.log('done fetching data')
-        setMovies3(res.data)
-      })
+    }).then(res => {
+      setC3Movies1(res.data)
+    })
+
+    axios.delete('/api/movies', {
+      data: {
+        id: movie2,
+        year: movie2year,
+        isolation: isolation
+      }
+    }).then(res => {
+      setC3Movies2(res.data)
+    })
+  }
+
+  const case3TriggerDelUpdate = (id: number, year: number) => {
+    axios.delete('/api/movies', {
+      data: {
+        id: id,
+        year: year,
+        isolation: isolation
+      }
+    }).then(res => {
+      setC3Movies1(res.data)
+    })
+
+    axios.post('/api/movies', {
+      isolation: isolation
+    }).then(res => {
+      console.log(res.data)
+      setC3Movies2(res.data)
     })
   }
 
   useEffect(() => {
     for (let node = 1; node <= 3; node++) {
-      axios.get('/api/nodes', {
-        params: {
-          node: node,
-        }
-      }).then(res => {
-        console.log(res.data)
-        switch (node) {
-          case 1:
-            setNode1Status(res.data.result)
-            break
-          case 2:
-            setNode2Status(res.data.result)
-            break
-          case 3:
-            setNode3Status(res.data.result)
-        }
-      })
+      // axios.get('/api/nodes', {
+      //   params: {
+      //     node: node,
+      //   }
+      // }).then(res => {
+      //   console.log(res.data)
+      //   switch (node) {
+      //     case 1:
+      //       setNode1Status(res.data.result)
+      //       break
+      //     case 2:
+      //       setNode2Status(res.data.result)
+      //       break
+      //     case 3:
+      //       setNode3Status(res.data.result)
+      //   }
+      // })
+      toggleNode(node)
     }
   }, [])
 
   useEffect(() => {
-    setMovies1(null)
-    setMovies2(null)
-    setMovies3(null)
-    setOffsetM(0)
+    setC1Movies1(null)
+    setC1Movies2(null)
+    setC2Movies1(null)
+    setC2Movies2(null)
+    setC3Movies1(null)
+    setC3Movies2(null)
+
     axios.get('/api/movies', {
       params: {
-        offset: 0,
         isolation: isolation
       }
     }).then(res => {
-      setMovies1(res.data)
-      setMovies2(res.data)
-      setMovies3(res.data)
+      setC1Movies1(res.data)
+      setC2Movies1(res.data)
+      setC3Movies1(res.data)
+    })
+
+    axios.get('/api/movies', {
+      params: {
+        isolation: isolation,
+        node: true
+      }
+    }).then(res => {
+      setC1Movies2(res.data)
+      setC2Movies2(res.data)
+      setC3Movies2(res.data)
     })
   }, [isolation, node1status, node2status, node3status])
-
-  useEffect(() => {
-    setMovies(null)
-    setMovies4(null)
-    axios.get('/api/movies', {
-      params: {
-        offset: offsetM,
-        isolation: isolation
-      }
-    }).then(res => {
-      setMovies(res.data)
-      setMovies4(res.data)
-    })
-  }, [offsetM, isolation, node1status, node2status, node3status])
 
   return (
     <div className="d-flex h-100">
@@ -196,35 +213,19 @@ export default function Home() {
         <div className="d-flex gap-3">
           <div>
             <h4>Movies 1</h4>
-            {!movies ? (
+            {!c1movies1 ? (
               <Loading />
             ) : (
-              <>
-              <Table movies={movies} isolation={isolation} />
-              <button 
-                className="btn btn-light border float-end"
-                onClick={() => setOffsetM(offsetM + QUERY_LIMIT)}
-              >
-                Next {QUERY_LIMIT}
-              </button>
-              </>
+              <Table movies={c1movies1} />
             )}
           </div>
 
           <div>
             <h4>Movies 2</h4>
-            {!movies4 ? (
+            {!c1movies2 ? (
               <Loading />
             ) : (
-              <>
-              <Table movies={movies4} isolation={isolation} />
-              <button 
-                className="btn btn-light border float-end"
-                onClick={() => setOffsetM(offsetM + QUERY_LIMIT)}
-              >
-                Next {QUERY_LIMIT}
-              </button>
-              </>
+              <Table movies={c1movies2} />
             )}
           </div>
         </div>
@@ -233,26 +234,26 @@ export default function Home() {
         <p>*Table 1 is writing, Table 2 is reading</p>
         <button 
           className="btn btn-secondary mb-3"
-          onClick={() => case2Trigger(movies1[0].movie_id)}
+          onClick={() => case2Trigger(c2movies1[0].movie_id)}
         >
           Delete first row
         </button>
         <div className="d-flex gap-3">
           <div>
             <h4>Movies Table 1</h4>
-            {!movies1 ? (
+            {!c2movies1 ? (
               <Loading />
             ) : (
-              <Table movies={movies1} isolation={isolation} />
+              <Table movies={c2movies1} />
             )}
           </div>
 
           <div>
             <h4>Movies Table 2</h4>
-            {!movies2 ? (
+            {!c2movies2 ? (
               <Loading />
             ) : (
-              <Table movies={movies2} isolation={isolation} />
+              <Table movies={c2movies2} />
             )}
           </div>
         </div>
@@ -261,17 +262,36 @@ export default function Home() {
         <p>*Both transactions are writing</p>
         <button 
           className="btn btn-secondary mb-3"
-          onClick={() => case3Trigger(movies3[0].movie_id)}
+          onClick={() => case3Trigger2Movies(
+            c3movies1[0].movie_id, 
+            c3movies1[0].movie_year, 
+            c3movies1[1].movie_id,
+            c3movies1[1].movie_year
+          )}
         >
-          Trigger transaction
+          Delete first 2 rows
+        </button> <br />
+        <button 
+          className="btn btn-secondary mb-3"
+          onClick={() => case3TriggerDelUpdate(c3movies1[1].movie_id, c3movies1[1].movie_year)}
+        >
+          Delete second row and Insert new movie
         </button>
         <div className="d-flex gap-3 mb-4">
           <div>
-            <h4>Movies Table</h4>
-            {!movies3 ? (
+            <h4>Movies Table 1</h4>
+            {!c3movies1 ? (
               <Loading />
             ) : (
-              <Table movies={movies3} isolation={isolation} />
+              <Table movies={c3movies1} />
+            )}
+          </div>
+          <div>
+            <h4>Movies Table 2</h4>
+            {!c3movies2 ? (
+              <Loading />
+            ) : (
+              <Table movies={c3movies2} />
             )}
           </div>
         </div>
@@ -291,24 +311,16 @@ export default function Home() {
           Trigger transaction
         </button>
 
-        <div className="d-flex gap-3">
+        {/* <div className="d-flex gap-3">
           <div>
             <h4>Central Node</h4>
             {!movies ? (
               <Loading />
             ) : (
-              <>
               <Table movies={movies} isolation={isolation} />
-              <button 
-                className="btn btn-light border float-end"
-                onClick={() => setOffsetM(offsetM + QUERY_LIMIT)}
-              >
-                Next {QUERY_LIMIT}
-              </button>
-              </>
             )}
           </div>
-        </div>
+        </div> */}
 
         <h4 className="mt-4">Case 4</h4>
         <p>*Node 2 or Node 3 is unavailable during the transaction and then eventually comes back online.</p>

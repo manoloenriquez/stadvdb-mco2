@@ -1,49 +1,29 @@
-import type { Movie, Director } from '../lib/types'
+import type { Movie } from '../lib/types'
 interface Props {
-  movies?: Array<Movie>
-  directors?: Array<Director>
-  isolation: string
+  movies: Array<Movie>
 }
 
-export default function Table({ movies, directors, isolation }: Props) {
+export default function Table({ movies }: Props) {
   return (
     <div className="table-container">
       <table className="table table-bordered px-3 table-hover">
         <thead>
-          {movies ? (
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Year</th>
-              <th>Ranking</th>
-            </tr>
-          ) : directors ? (
-            <tr>
-              <th>ID</th>
-              <th>First Name</th>
-              <th>Last Name</th>
-            </tr>
-          ) : (
-            <tr></tr>
-          )}
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Year</th>
+            <th>Ranking</th>
+          </tr>
         </thead>
         <tbody>
-          {movies ? movies.map(movie => (
+          {movies.map(movie => (
             <tr key={movie.movie_id}>
               <td>{movie.movie_id}</td>
               <td>{movie.movie_name}</td>
               <td>{movie.movie_year}</td>
               <td>{movie.movie_ranking}</td>
             </tr>
-          )) : directors ? directors.map(director => (
-            <tr key={director.director_id}>
-              <td>{director.director_id}</td>
-              <td>{director.director_first_name}</td>
-              <td>{director.director_last_name}</td>
-            </tr>
-          )) : (
-            <tr></tr>
-          )}
+          ))}
         </tbody>
       </table>
 
