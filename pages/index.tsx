@@ -59,6 +59,12 @@ export default function Home() {
     setC2Movies2(null)
     setC3Movies1(null)
     setC3Movies2(null)
+    setGC13Initial(null)
+    setGC13Movies1(null)
+    setGC13Movies2(null)
+    setGC24Initial(null)
+    setGC24Movies1(null)
+    setGC24Movies2(null)
 
     axios.get('/api/movies', {
       params: {
@@ -154,7 +160,7 @@ export default function Home() {
           node: true
         }
       }).then(res => {
-        setGC13Movies1(res.data)
+        setGC13Movies1(res.data)        
       })
     }).catch(err => {
       console.log(err)
@@ -179,11 +185,11 @@ export default function Home() {
     let year = gc24initial[0].movie_year
 
     // Prep for case 2
-    if (!node2status) {
+    if (node2status) {
       await toggleNode(2)
     }
 
-    if (!node3status) {
+    if (node3status) {
       await toggleNode(3)
     }
 
@@ -195,12 +201,20 @@ export default function Home() {
         isolation: isolation
       }
     }).then(res => {
+      // axios.get('/api/movies', {
+      //   params: {
+      //     isolation: isolation,
+      //     node: true
+      //   }
+      // }).then(res => {
+          
+      // })
       setGC24Movies1(res.data)
     }).catch(err => {
+      console.log(err)
       setGC24Movies1(null)
     })
-    toggleNode(2)
-    toggleNode(3)
+
 
     // Simulate case 4
     await toggleNode(2) // node 2 comes back online
@@ -420,6 +434,7 @@ export default function Home() {
         <div className="d-flex gap-3 mb-4">
           <div>
             <h4>Case 1 results</h4>
+            <p>*Node 2 and 3</p>
             {!gc13movies1 ? (
               <Loading />
             ) : (
@@ -428,6 +443,7 @@ export default function Home() {
           </div>
           <div>
             <h4>Case 3 results</h4>
+            <p>*Central node</p>
             {!gc13movies2 ? (
               <Loading />
             ) : (
@@ -456,6 +472,7 @@ export default function Home() {
         <div className="d-flex gap-3 mb-4">
           <div>
             <h4>Case 2 results</h4>
+            <p>*Central node</p>
             {!gc24movies1 ? (
               <Loading />
             ) : (
@@ -464,6 +481,7 @@ export default function Home() {
           </div>
           <div>
             <h4>Case 4 results</h4>
+            <p>*Node 2 and 3</p>
             {!gc24movies2 ? (
               <Loading />
             ) : (
